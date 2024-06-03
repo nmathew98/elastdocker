@@ -10,25 +10,24 @@ networks:
 volumes:
   elasticsearch-data:
 
+
 secrets:
   elasticsearch.keystore:
     file: ./secrets/keystore/elasticsearch.keystore
   elasticsearch.service_tokens:
     file: ./secrets/service_tokens
-  elastic.ca:
-    file: ./secrets/certs/ca/ca.crt
   elasticsearch.certificate:
-    file: ./secrets/certs/elasticsearch/elasticsearch.crt
+    file: /etc/letsencrypt/live/${LETS_ENCRYPT_DOMAIN}/fullchain.pem
   elasticsearch.key:
-    file: ./secrets/certs/elasticsearch/elasticsearch.key
+    file: /etc/letsencrypt/live/${LETS_ENCRYPT_DOMAIN}/privkey.pem
   kibana.certificate:
-    file: ./secrets/certs/kibana/kibana.crt
+    file: /etc/letsencrypt/live/${LETS_ENCRYPT_DOMAIN}/fullchain.pem
   kibana.key:
-    file: ./secrets/certs/kibana/kibana.key
+    file: /etc/letsencrypt/live/${LETS_ENCRYPT_DOMAIN}/privkey.pem
   apm-server.certificate:
-    file: ./secrets/certs/apm-server/apm-server.crt
+    file: /etc/letsencrypt/live/${LETS_ENCRYPT_DOMAIN}/fullchain.pem
   apm-server.key:
-    file: ./secrets/certs/apm-server/apm-server.key
+    file: /etc/letsencrypt/live/${LETS_ENCRYPT_DOMAIN}/privkey.pem
 
 services:
   elasticsearch:
@@ -57,8 +56,6 @@ services:
         target: /usr/share/elasticsearch/config/elasticsearch.keystore
       - source: elasticsearch.service_tokens
         target: /usr/share/elasticsearch/config/service_tokens
-      - source: elastic.ca
-        target: /usr/share/elasticsearch/config/certs/ca.crt
       - source: elasticsearch.certificate
         target: /usr/share/elasticsearch/config/certs/elasticsearch.crt
       - source: elasticsearch.key
@@ -74,7 +71,13 @@ services:
         soft: 200000
         hard: 200000
     healthcheck:
-      test: ["CMD", "sh", "-c", "curl -sf --insecure https://$ELASTIC_USERNAME:$ELASTIC_PASSWORD@localhost:$ELASTICSEARCH_PORT/_cat/health | grep -ioE 'green|yellow' || echo 'not green/yellow cluster status'"]
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          "curl -sf --insecure https://$ELASTIC_USERNAME:$ELASTIC_PASSWORD@localhost:$ELASTICSEARCH_PORT/_cat/health | grep -ioE 'green|yellow' || echo 'not green/yellow cluster status'"
+        ]
 
   logstash:
     image: elastdocker/logstash:${ELK_VERSION}
@@ -87,9 +90,6 @@ services:
       - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
       - ./logstash/config/pipelines.yml:/usr/share/logstash/config/pipelines.yml:ro
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
-    secrets:
-      - source: elastic.ca
-        target: /certs/ca.crt
     environment:
       ELASTIC_USERNAME: ${ELASTIC_USERNAME}
       ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
@@ -99,7 +99,14 @@ services:
       - "5044:5044"
       - "9600:9600"
     healthcheck:
-      test: ["CMD", "curl", "-s" ,"-XGET", "http://127.0.0.1:9600"]
+      test:
+        [
+          "CMD",
+          "curl",
+          "-s",
+          "-XGET",
+          "http://127.0.0.1:9600"
+        ]
 
   kibana:
     image: elastdocker/kibana:${ELK_VERSION}
@@ -118,8 +125,6 @@ services:
     env_file:
       - ./secrets/.env.kibana.token
     secrets:
-      - source: elastic.ca
-        target: /certs/ca.crt
       - source: kibana.certificate
         target: /certs/kibana.crt
       - source: kibana.key
@@ -144,8 +149,6 @@ services:
       ELASTICSEARCH_HOST_PORT: https://${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}
       ELASTIC_APM_SECRET_TOKEN: ${ELASTIC_APM_SECRET_TOKEN}
     secrets:
-      - source: elastic.ca
-        target: /certs/ca.crt
       - source: apm-server.certificate
         target: /certs/apm-server.crt
       - source: apm-server.key
