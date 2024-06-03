@@ -1,6 +1,8 @@
 networks:
   elk:
+    name: elk
     driver: overlay
+    attachable: true
 
 # will contain all elasticsearch data.
 volumes:
@@ -37,15 +39,12 @@ services:
     restart: unless-stopped
     environment:
       network.publish_host: _eth0_
+      cluster.name: elasticsearch-cluster
       node.name: elasticsearch.{{.Task.Slot}}
       discovery.seed_hosts: tasks.elasticsearch
       cluster.initial_master_nodes: elasticsearch.1
       ELASTIC_USERNAME: ${ELASTIC_USERNAME}
       ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
-      ELASTIC_CLUSTER_NAME: ${ELASTIC_CLUSTER_NAME}
-      ELASTIC_NODE_NAME: ${ELASTIC_NODE_NAME}
-      ELASTIC_INIT_MASTER_NODE: ${ELASTIC_INIT_MASTER_NODE}
-      ELASTIC_DISCOVERY_SEEDS: ${ELASTIC_DISCOVERY_SEEDS}
       ELASTICSEARCH_PORT: ${ELASTICSEARCH_PORT}
       ES_JAVA_OPTS: "-Xmx${ELASTICSEARCH_HEAP} -Xms${ELASTICSEARCH_HEAP} -Des.enforce.bootstrap.checks=true -Dlog4j2.formatMsgNoLookups=true"
       bootstrap.memory_lock: "true"
@@ -121,6 +120,9 @@ services:
         ]
     networks:
       - elk
+    deploy:
+      mode: replicated
+      replicas: 1
 
   kibana:
     image: elastdocker/kibana:${ELK_VERSION}
@@ -146,9 +148,12 @@ services:
       - source: kibana.key
         target: /certs/kibana.key
     ports:
-      - "${KIBANA_PORT}:${KIBANA_PORT}"
+      - 5601:5601
     networks:
       - elk
+    deploy:
+      mode: replicated
+      replicas: 1
 
   apm-server:
     image: elastdocker/apm-server:${ELK_VERSION}
@@ -175,3 +180,6 @@ services:
         target: /certs/apm-server.key
     networks:
       - elk
+    deploy:
+      mode: replicated
+      replicas: 1
