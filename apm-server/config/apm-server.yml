@@ -19,11 +19,11 @@ apm-server:
 
     # Path to file containing the certificate for server authentication.
     # Needs to be configured when ssl is enabled.
-    certificate: "/certs/apm-server.crt"
+    certificate: "/certs/apm-fullchain.pem"
 
     # Path to file containing server certificate key.
     # Needs to be configured when ssl is enabled.
-    key: "/certs/apm-server.key"
+    key: "/certs/apm-privkey.pem"
 
 #================================ Outputs =================================
 
@@ -51,10 +51,10 @@ output.elasticsearch:
   ssl.enabled: true
 
   # Certificate for SSL client authentication.
-  ssl.certificate: "/certs/apm-server.crt"
+  ssl.certificate: "/certs/apm-fullchain.pem"
 
   # Client Certificate Key
-  ssl.key: "/certs/apm-server.key"
+  ssl.key: "/certs/apm-privkey.pem"
 
 #============================= X-pack Monitoring =============================
 
@@ -89,7 +89,7 @@ monitoring.elasticsearch:
   ssl.enabled: true
 
   # Certificate for SSL client authentication.
-  ssl.certificate: "/certs/apm-server.crt"
+  ssl.certificate: "/certs/apm-fullchain.pem"
 
   # Client Certificate Key
-  ssl.key: "/certs/apm-server.key"
+  ssl.key: "/certs/apm-privkey.pem"
