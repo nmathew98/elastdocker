@@ -49,6 +49,7 @@ output.elasticsearch:
 
   # Enable custom SSL settings. Set to false to ignore custom SSL settings for secure communication.
   ssl.enabled: true
+  verification_mode: certificate
 
   # Certificate for SSL client authentication.
   ssl.certificate: "/certs/apm-fullchain.pem"
@@ -87,6 +88,7 @@ monitoring.elasticsearch:
 
   # Enable custom SSL settings. Set to false to ignore custom SSL settings for secure communication.
   ssl.enabled: true
+  verification_mode: certificate
 
   # Certificate for SSL client authentication.
   ssl.certificate: "/certs/apm-fullchain.pem"

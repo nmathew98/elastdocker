@@ -31,8 +31,12 @@ services:
       - source: elasticsearch.key
         target: /usr/share/elasticsearch/config/certs/privkey.pem
     ports:
-      - "${ELASTICSEARCH_PORT}"
-      - "9300"
+      - target: 9300
+        published: 9300
+        mode: host
+      - target: ${ELASTICSEARCH_PORT}
+        published: ${ELASTICSEARCH_PORT}
+        mode: host
     ulimits:
       memlock:
         soft: -1
@@ -52,7 +56,7 @@ services:
       - elk
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 3
 
   logstash:
     image: elastdocker/logstash:${ELK_VERSION}
@@ -71,8 +75,12 @@ services:
       ELASTICSEARCH_HOST_PORT: https://${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}
       LS_JAVA_OPTS: "-Xmx${LOGSTASH_HEAP} -Xms${LOGSTASH_HEAP} -Dlog4j2.formatMsgNoLookups=true"
     ports:
-      - "5044:5044"
-      - "9600:9600"
+      - target: 5044
+        published: 5044
+        mode: host
+      - target: 9600
+        published: 9600
+        mode: host
     healthcheck:
       test:
         [
@@ -86,7 +94,7 @@ services:
       - elk
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 3
 
   kibana:
     image: elastdocker/kibana:${ELK_VERSION}
@@ -111,13 +119,17 @@ services:
       - source: kibana.key
         target: /certs/privkey.pem
     ports:
-      - "${KIBANA_PORT}:${KIBANA_PORT}"
-      - "443:${KIBANA_PORT}"
+      - target: ${KIBANA_PORT}
+        published: ${KIBANA_PORT}
+        mode: host
+      - target: ${KIBANA_PORT}
+        published: 443
+        mode: host
     networks:
       - elk
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 3
 
   apm-server:
     image: elastdocker/apm-server:${ELK_VERSION}
@@ -127,7 +139,9 @@ services:
         ELK_VERSION: $ELK_VERSION
     restart: unless-stopped
     ports:
-      - "8200:8200"
+      - target: 8200
+        published: 8200
+        mode: host
     volumes:
       - ./apm-server/config/apm-server.yml:/usr/share/apm-server/apm-server.yml:ro
     environment:
@@ -144,7 +158,7 @@ services:
       - elk
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 3
 
 volumes:
   elasticsearch:
