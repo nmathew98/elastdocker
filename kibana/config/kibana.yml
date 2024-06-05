@@ -5,22 +5,24 @@
 server.name: kibana
 server.host: "0.0.0.0"
 server.port: ${KIBANA_PORT}
+server.publicBaseUrl: ${KIBANA_PUBLIC_BASE_URL}
 
 # Elasticsearch Connection
 elasticsearch.hosts: [ "${ELASTICSEARCH_HOST_PORT}" ]
 
+# Ignore certificate host mismatch because the certificate we have is issued to the subdomain
+elasticsearch.ssl.verificationMode: certificate
+
 # SSL settings
 server.ssl.enabled: true
-server.ssl.certificate: /certs/kibana.crt
-server.ssl.key: /certs/kibana.key
-server.ssl.certificateAuthorities: [ "/certs/ca.crt" ]
+server.ssl.certificate: /certs/fullchain.pem
+server.ssl.key: /certs/privkey.pem
 xpack.security.encryptionKey: C1tHnfrlfxSPxPlQ8BlgPB5qMNRtg5V5
 xpack.encryptedSavedObjects.encryptionKey: D12GTfrlfxSPxPlGRBlgPB5qM5GOPDV5
 xpack.reporting.encryptionKey: RSCueeHKzrqzOVTJhkjt17EMnzM96LlN
 
 ## X-Pack security credentials
 elasticsearch.serviceAccountToken: "${KIBANA_SERVICE_ACCOUNT_TOKEN}"
-elasticsearch.ssl.certificateAuthorities: [ "/certs/ca.crt" ]
 
 ## Add policy for apm-server integration
 xpack.fleet.packages:

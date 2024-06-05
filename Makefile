@@ -23,11 +23,7 @@ endif
 keystore:		## Setup Elasticsearch Keystore, by initializing passwords, and add credentials defined in `keystore.sh`.
 	$(DOCKER_COMPOSE_COMMAND) -f docker-compose.setup.yml run --rm keystore
 
-certs:		    ## Generate Elasticsearch SSL Certs.
-	$(DOCKER_COMPOSE_COMMAND) -f docker-compose.setup.yml run --rm certs
-
 setup:		    ## Generate Elasticsearch SSL Certs and Keystore.
-	@make certs
 	@make keystore
 
 all:		    ## Start Elk and all its component (ELK, Monitoring, and Tools).

@@ -4,6 +4,7 @@ version: '3.5'
 volumes:
   filebeat-data:
 
+
 services:
   # Docker Logs Shipper ------------------------------
   filebeat:
@@ -22,3 +23,9 @@ services:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - filebeat-data:/var/lib/filebeat/data
+    networks:
+      - elk
+
+networks:
+  elk:
+    external: true
