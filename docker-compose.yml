@@ -8,10 +8,10 @@ services:
     restart: unless-stopped
     environment:
       network.publish_host: _eth0_
-      cluster.name: elasticsearch-cluster
       node.name: elasticsearch.{{.Task.Slot}}
+      path.data: ./elasticsearch.{{.Task.Slot}}
       discovery.seed_hosts: tasks.elasticsearch
-      cluster.initial_master_nodes: elasticsearch.1
+      cluster.initial_master_nodes: elasticsearch.1,elasticsearch.2,elasticsearch.3
       ELASTIC_USERNAME: ${ELASTIC_USERNAME}
       ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
       ELASTICSEARCH_PORT: ${ELASTICSEARCH_PORT}
@@ -33,10 +33,8 @@ services:
     ports:
       - target: 9300
         published: 9300
-        mode: host
       - target: ${ELASTICSEARCH_PORT}
         published: ${ELASTICSEARCH_PORT}
-        mode: host
     ulimits:
       memlock:
         soft: -1
@@ -77,10 +75,8 @@ services:
     ports:
       - target: 5044
         published: 5044
-        mode: host
       - target: 9600
         published: 9600
-        mode: host
     healthcheck:
       test:
         [
@@ -94,7 +90,7 @@ services:
       - elk
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: 1
 
   kibana:
     image: elastdocker/kibana:${ELK_VERSION}
@@ -120,16 +116,12 @@ services:
         target: /certs/privkey.pem
     ports:
       - target: ${KIBANA_PORT}
-        published: ${KIBANA_PORT}
-        mode: host
-      - target: ${KIBANA_PORT}
         published: 443
-        mode: host
     networks:
       - elk
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: 1
 
   apm-server:
     image: elastdocker/apm-server:${ELK_VERSION}
@@ -141,7 +133,6 @@ services:
     ports:
       - target: 8200
         published: 8200
-        mode: host
     volumes:
       - ./apm-server/config/apm-server.yml:/usr/share/apm-server/apm-server.yml:ro
     environment:
@@ -158,7 +149,7 @@ services:
       - elk
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: 1
 
 volumes:
   elasticsearch:
