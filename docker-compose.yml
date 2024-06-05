@@ -1,4 +1,21 @@
 services:
+  proxy:
+    image: alpine:latest
+    command:
+      - /bin/sh
+      - -c
+      - |
+        apk update
+        apk add socat
+        socat TCP-LISTEN:9200,fork TCP:elasticsearch:9200
+    ports:
+      - 9200:9200
+    networks:
+      - elk
+    deploy:
+      mode: replicated
+      replicas: 1
+
   elasticsearch:
     image: elastdocker/elasticsearch:${ELK_VERSION}
     build:
@@ -8,10 +25,10 @@ services:
     restart: unless-stopped
     environment:
       network.publish_host: _eth0_
-      node.name: elasticsearch.{{.Task.Slot}}
+      node.name: elk_elasticsearch.{{.Task.Slot}}
       path.data: ./elasticsearch.{{.Task.Slot}}
       discovery.seed_hosts: tasks.elasticsearch
-      cluster.initial_master_nodes: elasticsearch.1,elasticsearch.2,elasticsearch.3
+      cluster.initial_master_nodes: elk_elasticsearch.1,elk_elasticsearch.2,elk_elasticsearch.3
       ELASTIC_USERNAME: ${ELASTIC_USERNAME}
       ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
       ELASTICSEARCH_PORT: ${ELASTICSEARCH_PORT}
@@ -30,11 +47,6 @@ services:
         target: /usr/share/elasticsearch/config/certs/fullchain.pem
       - source: elasticsearch.key
         target: /usr/share/elasticsearch/config/certs/privkey.pem
-    ports:
-      - target: 9300
-        published: 9300
-      - target: ${ELASTICSEARCH_PORT}
-        published: ${ELASTICSEARCH_PORT}
     ulimits:
       memlock:
         soft: -1
@@ -161,17 +173,17 @@ secrets:
   elasticsearch.service_tokens:
     file: ./secrets/service_tokens
   elasticsearch.certificate:
-    file: /etc/letsencrypt/live/${LETS_ENCRYPT_DOMAIN}/fullchain.pem
+    file: ./keys/fullchain.pem
   elasticsearch.key:
-    file: /etc/letsencrypt/live/${LETS_ENCRYPT_DOMAIN}/privkey.pem
+    file: ./keys/privkey.pem
   kibana.certificate:
-    file: /etc/letsencrypt/live/${LETS_ENCRYPT_DOMAIN}/fullchain.pem
+    file: ./keys/fullchain.pem
   kibana.key:
-    file: /etc/letsencrypt/live/${LETS_ENCRYPT_DOMAIN}/privkey.pem
+    file: ./keys/privkey.pem
   apm-server.certificate:
-    file: /etc/letsencrypt/live/${LETS_ENCRYPT_DOMAIN}/fullchain.pem
+    file: ./keys/fullchain.pem
   apm-server.key:
-    file: /etc/letsencrypt/live/${LETS_ENCRYPT_DOMAIN}/privkey.pem
+    file: ./keys/privkey.pem
 
 networks:
   elk:
