@@ -6,8 +6,11 @@ services:
       - -c
       - |
         apk update
-        apk add socat
-        socat TCP-LISTEN:9200,fork TCP:elasticsearch:9200
+        socat OPENSSL-LISTEN:9200,fork,cert=/certs/fullchain.pem,verify=0 TCP:elasticsearch:9200 # Elasticsearch, 9300 is for cluster discovery
+        socat OPENSSL-LISTEN:5044,fork,cert=/certs/fullchain.pem,verify=0 TCP:elasticsearch:5044 # Logstash
+        socat OPENSSL-LISTEN:9600,fork,cert=/certs/fullchain.pem,verify=0 TCP:elasticsearch:9600 # Logstash
+        socat OPENSSL-LISTEN:443,fork,cert=/certs/fullchain.pem,verify=0 TCP:kibana:${KIBANA_HOST} # Kibana
+        socat OPENSSL-LISTEN:8200,fork,cert=/certs/fullchain.pem,verify=0 TCP:apm-server:8200 # APM Server
     ports:
       - 9200:9200
     networks:
@@ -142,9 +145,6 @@ services:
       args:
         ELK_VERSION: $ELK_VERSION
     restart: unless-stopped
-    ports:
-      - target: 8200
-        published: 8200
     volumes:
       - ./apm-server/config/apm-server.yml:/usr/share/apm-server/apm-server.yml:ro
     environment:
